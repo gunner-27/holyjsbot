@@ -3,66 +3,62 @@ let actionPoints = API.getActionPointsCount();
 let enemies = API.getEnemies();
 let enemiesNear = 0;
 
+
 enemies.forEach(enemy => {
-  enemy.distanse = getDistance(x, y, enemy.position);
-  if (enemy.distanse.total <= actionPoints) {
+  enemy.distance = getDistance(x, y, enemy.position); 
+  if (enemy.distance < actionPoints) {
     enemiesNear++;
   }
 });
-
 if (enemiesNear == 0) {
-  // бежим в угол
-  let xVector = 0, yVector = 0;
-  if (x <= 4) {
-    xVector = 0 - x;
-  } else {
-    xVector = 9 - x;
+  let xm;
+  if (x > 4) {
+    xm = x -1;
+   }
+  else {
+    xm = x+1;
   }
-
-  if (y <= 4) {
-    yVector = 0 - y;
-  } else {
-    yVector = 9 - y;
-  }
-
-  if (xVector == 0 && yVector == 0) {
-    if (x == 0) {
-      API.move(1, y);
-    } else {
-      API.move(8, y);
-    }
-  } else {
-    if (actionPoints <= xVector) {
-      API.move(x + Math.sign(xVector) * actionPoints, y);
-    } else {
-      let yPoints = actionPoints - Math.abs(xVector);
-      if (yPoints <= yVector) {
-        API.move(x + xVector, y + Math.sign(yVector) * yPoints);
-      } else {
-        API.move(x + xVector, y + yVector);
-      }
-    }
-  }
-
+  API.move(xm, y);
 } else {
-  // едим врага
-  let { eX, eY } = getNearEmenyPosition(actionPoints, enemies);
-  API.move(eX, eY);
+  let {mX, mY} = getNearEnemy(enemies, actionPoints);
+  API.move(mX, mY); 
 }
 
-function getDistance(x, y, enemyPoints) {
-  let Distance = {
-    x: Math.abs(Math.abs(x) - Math.abs(enemyPoints.x)),
-    y: Math.abs(Math.abs(y) - Math.abs(enemyPoints.y)),
-    total: x + y
-  };
-  return Distance;
-};
+function getDistance(x, y, enemyPosition) {
+  let xDistance, yDistance, total;
+  xDistance = enemyPosition.x > x ? enemyPosition.x - x : x - enemyPosition.x;
+  yDistance = enemyPosition.y > y ? enemyPosition.y - y : y - enemyPosition.y;
+  total = xDistance+yDistance;
+  return total;
+}
 
-function getNearEmenyPosition(actionPoints, enemies) {
-  enemies.forEach(e => {
-    if (e.distanse.total <= actionPoints) {
-      return (e.position.x, e.position.y);
+function getNearEnemy(enemies, actionPoints) {
+  let nearEnemies = [];
+  let maxEnemies = 10;
+  let mX, mY;
+  enemies.forEach(enemy => {
+    if (enemy.distance < actionPoints) {
+      nearEnemies.push(enemy);
     }
   });
+  nearEnemies.forEach(enemy => {
+    enemy.enemiesAround = countNearEnemies(enemy.position.x, enemy.position.y, actionPoints);
+    if (enemy.enemiesAround < maxEnemies) {
+      maxEnemies = enemy.enemiesAround;
+      mX = enemy.position.x;
+      mY = enemy.position.y;
+    }
+  });
+  return ({mX, mY});
+}
+
+function countNearEnemies(x, y, actionPoints) {
+  let enemiesNear = 0;
+  enemies.forEach(enemy => {
+    enemy.distance = getDistance(x, y, enemy.position); 
+    if (enemy.distance < actionPoints) {
+      enemiesNear++;
+    }
+  });
+  return enemiesNear;
 }
