@@ -22,7 +22,10 @@ if (nearEnemiesCount == 0) {
     //hunt();
   } else {
     let places = findSafePlaces(x, y);
+    console.log(places);
     let place = findBestPlace(places);
+
+    console.log(place);
     newX = place.x, newY = place.y;
     API.move(newX, newY);
   }
@@ -59,8 +62,10 @@ function isSafePlace(x, y) {
   let nearEnemiesC = 0;
   enemies.forEach(enemy => {
     enemy.distance = getDistance(x, y, enemy.position);
-    if (enemy.distance < 4 && enemy.distance > 0) {
-      nearEnemiesC++;
+    if (enemy.distance < 4) {
+      if (enemy.position.x != x && enemy.position.y != y) {
+        nearEnemiesC++;
+      }
     }
   });
   if (nearEnemiesC == 0) {
