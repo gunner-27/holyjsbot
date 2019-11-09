@@ -3,32 +3,54 @@ let actionPoints = API.getActionPointsCount();
 let enemies = API.getEnemies();
 let enemiesNear = 0;
 
-
 enemies.forEach(enemy => {
-  enemy.distance = getDistance(x, y, enemy.position); 
+  enemy.distance = getDistance(x, y, enemy.position);
   if (enemy.distance < actionPoints) {
     enemiesNear++;
   }
 });
 if (enemiesNear == 0) {
-  let xm;
-  if (x > 4) {
-    xm = x -1;
-   }
-  else {
-    xm = x+1;
+  let { xm, ym } = findNearCorner(x, y);
+  if (x != xm) {
+    let Ypoints = actionPoints - Math.abs(xm - x);
+    if (Ypoints > -1) {
+      if (Math.abs(ym - y) <= Ypoints) {
+        API.move(xm, ym);
+      } else {
+        ym = Math.sign(ym - y) * Ypoints;
+        API.move(xm, ym);
+      }
+    } else {
+      ym = 0;
+      xm = Math.sign(xm - x) * actionPoints;
+      API.move(xm, ym);
+    }
+  } else {
+    if (y != ym) {
+      if (Math.abs(ym - y) <= actionPoints) {
+        API.move(xm, ym);
+      } else {
+        ym = Math.sign(ym - y) * actionPoints;
+        API.move(xm, ym);
+      }
+    } else {
+      if (xm == 8) {
+        API.move(7,ym);
+      } else {
+        API.move(1, ym);
+      }
+    }
   }
-  API.move(xm, y);
 } else {
-  let {mX, mY} = getNearEnemy(enemies, actionPoints);
-  API.move(mX, mY); 
+  let { mX, mY } = getNearEnemy(enemies, actionPoints);
+  API.move(mX, mY);
 }
 
 function getDistance(x, y, enemyPosition) {
   let xDistance, yDistance, total;
   xDistance = enemyPosition.x > x ? enemyPosition.x - x : x - enemyPosition.x;
   yDistance = enemyPosition.y > y ? enemyPosition.y - y : y - enemyPosition.y;
-  total = xDistance+yDistance;
+  total = xDistance + yDistance;
   return total;
 }
 
@@ -49,16 +71,31 @@ function getNearEnemy(enemies, actionPoints) {
       mY = enemy.position.y;
     }
   });
-  return ({mX, mY});
+  return ({ mX, mY });
 }
 
 function countNearEnemies(x, y, actionPoints) {
   let enemiesNear = 0;
   enemies.forEach(enemy => {
-    enemy.distance = getDistance(x, y, enemy.position); 
+    enemy.distance = getDistance(x, y, enemy.position);
     if (enemy.distance < actionPoints) {
       enemiesNear++;
     }
   });
   return enemiesNear;
+}
+
+function findNearCorner(x, y) {
+  let xm, ym;
+  if (x < 4) {
+    xm = 0;
+  } else {
+    xm = 8;
+  };
+  if (y < 4) {
+    ym = 0;
+  } else {
+    ym = 8;
+  }
+  return ({ xm, ym });
 }
