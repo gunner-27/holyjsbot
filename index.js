@@ -17,29 +17,31 @@ if (enemiesNear == 0) {
     API.move(place.x, place.y);
   }
 } else {
-  if (enemiesNear == 1) {
-    let { mX, mY } = getNearEnemy(enemies, actionPoints);
-    if (isSafePlace(mX, mY)) {
-      API.move(mX, mY);
-    } else {
-      let places = findSafePlaces(x, y);
-      if (places.length != 0) {
-        let place = findBestPlace(places);
-        API.move(place.x, place.y);
-      } else {
-        API.move(mX, mY);
+  let xNew, yNew;
+  let flag = 1;
+  enemies.forEach(enemy => {
+    enemy.distance = getDistance(x, y, enemy.position);
+    if (enemy.distance < actionPoints) {
+      if (isSafePlace(enemy.position.x, enemy.position.y)) {
+        flag = 0;
+        xNew = enemy.position.x;
+        yNew = enemy.position.y;
       }
     }
-  } else {
+  });
+  if (flag) {
     let places = findSafePlaces(x, y);
     if (places.length != 0) {
       let place = findBestPlace(places);
-      API.move(place.x, place.y);
+      xNew = place.x;
+      yNew = place.y;
     } else {
       let { mX, mY } = getNearEnemy(enemies, actionPoints);
-      API.move(mX, mY);
+      xNew = mX;
+      yNew = mY;
     }
   }
+  API.move(xNew, yNew);
 }
 
 function getDistance(x, y, enemyPosition) {
