@@ -15,10 +15,17 @@ enemies.forEach(enemy => {
 
 if (nearEnemiesCount == 0) {
   if (enemies.length == 1) {
-    hunt(x, y);
-  } else {
     let places = findSafePlaces(x, y);
     let place = findBestPlace(places);
+    newX = place.x, newY = place.y;
+    API.move(newX, newY);
+    //hunt();
+  } else {
+    let places = findSafePlaces(x, y);
+    console.log(places);
+    let place = findBestPlace(places);
+
+    console.log(place);
     newX = place.x, newY = place.y;
     API.move(newX, newY);
   }
@@ -117,20 +124,6 @@ function findNearCorner(x, y) {
   return ({ xm, ym });
 }
 
-function hunt(x, y) {
-  let xV = 0;
-  let yV = 0;
- let dis = getDistance(x, y, enemies[0].position);
- let xVector = enemies[0].position.x - x;
- let yVector = enemies[0].position.y - y;
- xV = xVector > 4 ? x+1*(Math.sign(xVector)) : 0;
- yV = yVector > 4 ? y+1*(Math.sign(yVector)) : 0;
-  if (xV != 0 && yV != 0) {
-    API.move(xV, yV);
-  } else {
-    let places = findSafePlaces(x, y);
-    let place = findBestPlace(places);
-    xV = place.x, yV = place.y;
-    API.move(xV, yV);
-  }
- }
+// function hunt() {
+
+// }
