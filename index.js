@@ -9,41 +9,37 @@ enemies.forEach(enemy => {
     enemiesNear++;
   }
 });
+
 if (enemiesNear == 0) {
-  let { xm, ym } = findNearCorner(x, y);
-  if (x != xm) {
-    let Ypoints = actionPoints - Math.abs(xm - x);
-    if (Ypoints > -1) {
-      if (Math.abs(ym - y) <= Ypoints) {
-        API.move(xm, ym);
-      } else {
-        ym = Math.sign(ym - y) * Ypoints;
-        API.move(xm, ym);
-      }
-    } else {
-      ym = 0;
-      xm = Math.sign(xm - x) * actionPoints;
-      API.move(xm, ym);
-    }
-  } else {
-    if (y != ym) {
-      if (Math.abs(ym - y) <= actionPoints) {
-        API.move(xm, ym);
-      } else {
-        ym = Math.sign(ym - y) * actionPoints;
-        API.move(xm, ym);
-      }
-    } else {
-      if (xm == 8) {
-        API.move(7,ym);
-      } else {
-        API.move(1, ym);
-      }
-    }
+  let places = findSafePlaces(x, y);
+  if (places.length != 0) {
+    let place = findBestPlace(places);
+    API.move(place.x, place.y);
   }
 } else {
-  let { mX, mY } = getNearEnemy(enemies, actionPoints);
-  API.move(mX, mY);
+  if (enemiesNear == 1) {
+    let { mX, mY } = getNearEnemy(enemies, actionPoints);
+    if (isSafePlace(mX, mY)) {
+      API.move(mX, mY);
+    } else {
+      let places = findSafePlaces(x, y);
+      if (places.length != 0) {
+        let place = findBestPlace(places);
+        API.move(place.x, place.y);
+      } else {
+        API.move(mX, mY);
+      }
+    }
+  } else {
+    let places = findSafePlaces(x, y);
+    if (places.length != 0) {
+      let place = findBestPlace(places);
+      API.move(place.x, place.y);
+    } else {
+      let { mX, mY } = getNearEnemy(enemies, actionPoints);
+      API.move(mX, mY);
+    }
+  }
 }
 
 function getDistance(x, y, enemyPosition) {
@@ -78,7 +74,7 @@ function countNearEnemies(x, y, actionPoints) {
   let enemiesNear = 0;
   enemies.forEach(enemy => {
     enemy.distance = getDistance(x, y, enemy.position);
-    if (enemy.distance < actionPoints) {
+    if (enemy.distance < actionPoints && enemy.distance > 0) {
       enemiesNear++;
     }
   });
@@ -98,4 +94,80 @@ function findNearCorner(x, y) {
     ym = 8;
   }
   return ({ xm, ym });
+}
+
+
+function findSafePlaces(x, y) {
+  let places = findAvailablePlaces(x, y);
+  let safePlaces = [];
+  places.forEach(place => {
+    let enemiesAround = countNearEnemies(place.x, place.y, 4);
+    if (enemiesAround == 0) {
+      safePlaces.push(place);
+    }
+  });
+  return safePlaces;
+}
+
+function findAvailablePlaces(x, y) {
+  let places = [];
+  let xMin, xMax, yMin, yMax;
+  if (x > 2) {
+    xMin = x - 3;
+  } else {
+    xMin = 0;
+  }
+  if (x < 6) {
+    xMax = x + 3;
+  } else {
+    xMax = 8;
+  }
+
+  if (y > 2) {
+    yMin = y - 3;
+  } else {
+    yMin = 0;
+  }
+  if (y < 6) {
+    yMax = y + 3;
+  } else {
+    yMax = 8;
+  }
+
+  for (let i = xMin; i < xMax; i++) {
+    for (let j = yMin; j < yMax; j++) {
+      places.push({ x: i, y: j });
+    }
+  }
+  let pos = 0;
+  places.forEach((element, i) => {
+    if (element.x == x && element.y == y) {
+      pos = i;
+    }
+  });
+  places.splice(pos, 1);
+  return (places);
+}
+
+function findBestPlace(places) {
+  let bestplace;
+  let MaxDistance = 9999;
+  places.forEach(place => {
+    let { xm, ym } = findNearCorner(place.x, place.y);
+    let total = getDistance(xm, ym, place);
+    if (total <= MaxDistance) {
+      MaxDistance = total;
+      bestplace = place;
+    };
+  });
+  return bestplace;
+}
+
+function isSafePlace(x, y) {
+  let nearEnemies = countNearEnemies(x, y, 3);
+  if (nearEnemies == 0) {
+    return true;
+  } else {
+    return false;
+  }
 }
